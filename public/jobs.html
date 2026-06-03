@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Board — JobFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0d0d14; --surface: #13131e; --surface2: #1a1a2a;
+            --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+            --text: #eeeef5; --muted: #7878a0; --dim: #3a3a58;
+            --accent: #6c63ff; --accent2: #ff6c9c; --green: #22c55e; --red: #ef4444;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .topbar { position: sticky; top: 0; z-index: 100; background: rgba(13,13,20,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 40px; height: 62px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 10px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; text-decoration: none; color: var(--text); }
+        .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .nav-links { display: flex; gap: 4px; }
+        .nav-link { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; transition: all 0.2s; }
+        .nav-link:hover { color: var(--text); background: var(--surface2); }
+        .nav-link.active { color: var(--text); background: var(--surface2); }
+        .main { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+        .page-title { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+        .page-sub { color: var(--muted); font-size: 15px; margin-top: 4px; }
+        .btn-add { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--accent), #8b7fff); border: none; border-radius: 10px; padding: 11px 20px; color: white; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px rgba(108,99,255,0.35); transition: all 0.2s; }
+        .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; text-align: center; }
+        .stat-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+        .stat-label { font-size: 12px; color: var(--muted); }
+        .search-wrap { position: relative; margin-bottom: 20px; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--muted); pointer-events: none; }
+        .search-input { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 13px 16px 13px 44px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .search-input:focus { border-color: var(--accent); }
+        .search-input::placeholder { color: var(--dim); }
+        .table-wrap { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; overflow: hidden; }
+        .table-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .table-count { font-size: 13px; color: var(--muted); }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+        tbody td { padding: 14px 16px; font-size: 14px; vertical-align: middle; }
+        .td-company { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .company-logo { width: 34px; height: 34px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Syne', sans-serif; flex-shrink: 0; }
+        .td-role { color: var(--muted); font-size: 13px; }
+        .td-date { color: var(--muted); font-size: 13px; }
+        .td-actions { display: flex; gap: 6px; }
+        .action-btn { padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .btn-edit { background: rgba(108,99,255,0.1); color: #a89fff; border: 1px solid rgba(108,99,255,0.2); }
+        .btn-edit:hover { background: rgba(108,99,255,0.2); }
+        .btn-delete { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .btn-delete:hover { background: rgba(239,68,68,0.2); }
+
+        /* Skills tags in table */
+        .skills-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .skill-tag-sm { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2); color: #a89fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+        .empty { text-align: center; padding: 60px 20px; }
+        .empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .empty-text { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 32px; width: 100%; max-width: 480px; transform: scale(0.95) translateY(10px); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
+        .modal-close { width: 32px; height: 32px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal-close:hover { border-color: var(--red); color: var(--red); }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-hint { font-size: 11px; color: var(--dim); margin-top: 5px; }
+        .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--dim); }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .btn-cancel { padding: 10px 20px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+        .btn-save { padding: 10px 24px; background: linear-gradient(135deg, var(--accent), #8b7fff); border: none; border-radius: 10px; color: white; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-save:hover { opacity: 0.9; }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 13px 18px; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 999; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .toast.show { transform: translateX(0); }
+
+        @media(max-width:600px) {
+            .topbar { padding: 0 16px; }
+            .stats-row { grid-template-columns: 1fr; }
+            thead th:nth-child(3), tbody td:nth-child(3),
+            thead th:nth-child(4), tbody td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="topbar">
+    <a class="logo" href="/"><div class="logo-icon">🚀</div>JobFlow</a>
+    <div class="nav-links">
+        <a class="nav-link" href="/">CV Analyzer</a>
+        <a class="nav-link active" href="/jobs">Job Board</a>
+    </div>
+</nav>
+
+<div class="main">
+    <div class="page-header">
+        <div>
+            <div class="page-title">Job Board</div>
+            <div class="page-sub">Manage all job listings in the system</div>
+        </div>
+        <button class="btn-add" onclick="openAddModal()">+ Add New Job</button>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Jobs</div></div>
+        <div class="stat-card"><div class="stat-num" id="statCompanies">—</div><div class="stat-label">Companies</div></div>
+        <div class="stat-card"><div class="stat-num" id="statToday">—</div><div class="stat-label">Added Today</div></div>
+    </div>
+
+    <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by company, role or skill..." oninput="filterJobs()" />
+    </div>
+
+    <div class="table-wrap">
+        <div class="table-toolbar"><span class="table-count" id="tableCount">Loading...</span></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Role</th>
+                    <th>Required Skills</th>
+                    <th>Date Added</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="jobsTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="jobModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Add New Job</div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Company Name *</label>
+            <input type="text" class="form-input" id="inputCompany" placeholder="e.g. Google" />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Job Role *</label>
+            <input type="text" class="form-input" id="inputRole" placeholder="e.g. Software Engineer" />
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Required Skills</label>
+            <input type="text" class="form-input" id="inputSkills" placeholder="e.g. javascript, react, nodejs, mongodb" />
+            <div class="form-hint">Separate skills with commas — used for CV matching</div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-save" id="saveBtn" onclick="saveJob()">Save Job</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastIcon"></span><span id="toastMsg"></span></div>
+
+<script>
+    let allJobs = [];
+    let editingId = null;
+
+    async function loadJobs() {
+        try {
+            const res = await fetch('/api/jobs');
+            if (!res.ok) throw new Error('Failed to fetch');
+            allJobs = await res.json();
+            renderTable(allJobs);
+            updateStats(allJobs);
+        } catch (err) {
+            showToast('Failed to load jobs', 'error');
+        }
+    }
+
+    function updateStats(jobs) {
+        document.getElementById('statTotal').textContent = jobs.length;
+        document.getElementById('statCompanies').textContent = new Set(jobs.map(j => j.company)).size;
+        const today = new Date().toDateString();
+        document.getElementById('statToday').textContent = jobs.filter(j => new Date(j.createdAt).toDateString() === today).length;
+    }
+
+    function renderTable(jobs) {
+        const tbody = document.getElementById('jobsTableBody');
+        document.getElementById('tableCount').textContent = `${jobs.length} job${jobs.length !== 1 ? 's' : ''} listed`;
+
+        if (jobs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5"><div class="empty">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">No jobs found</div>
+                <div class="empty-text">Add your first job listing to get started.</div>
+            </div></td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = jobs.map(job => {
+            const initial = (job.company || '?').charAt(0).toUpperCase();
+            const date = new Date(job.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const skillsHtml = job.skills && job.skills.length > 0
+                ? `<div class="skills-tags">${job.skills.slice(0, 4).map(s => `<span class="skill-tag-sm">${s}</span>`).join('')}${job.skills.length > 4 ? `<span class="skill-tag-sm">+${job.skills.length - 4}</span>` : ''}</div>`
+                : '<span style="color:var(--dim);font-size:12px">No skills added</span>';
+
+            return `<tr>
+                <td><div class="td-company"><div class="company-logo">${initial}</div>${esc(job.company)}</div></td>
+                <td class="td-role">${esc(job.role)}</td>
+                <td>${skillsHtml}</td>
+                <td class="td-date">${date}</td>
+                <td><div class="td-actions">
+                    <button class="action-btn btn-edit" onclick="openEditModal('${job._id}')">✏️ Edit</button>
+                    <button class="action-btn btn-delete" onclick="deleteJob('${job._id}')">🗑️ Delete</button>
+                </div></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function filterJobs() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        renderTable(allJobs.filter(j =>
+            (j.company || '').toLowerCase().includes(q) ||
+            (j.role || '').toLowerCase().includes(q) ||
+            (j.skills || []).some(s => s.toLowerCase().includes(q))
+        ));
+    }
+
+    function openAddModal() {
+        editingId = null;
+        document.getElementById('modalTitle').textContent = 'Add New Job';
+        document.getElementById('inputCompany').value = '';
+        document.getElementById('inputRole').value = '';
+        document.getElementById('inputSkills').value = '';
+        document.getElementById('saveBtn').textContent = 'Save Job';
+        document.getElementById('saveBtn').disabled = false;
+        document.getElementById('jobModal').classList.add('open');
+        setTimeout(() => document.getElementById('inputCompany').focus(), 200);
+    }
+
+    function openEditModal(id) {
+        const job = allJobs.find(j => j._id === id);
+        if (!job) { showToast('Job not found', 'error'); return; }
+        editingId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Job';
+        document.getElementById('inputCompany').value = job.company || '';
+        document.getElementById('inputRole').value = job.role || '';
+        document.getElementById('inputSkills').value = (job.skills || []).join(', ');
+        document.getElementById('saveBtn').textContent = 'Update Job';
+        document.getElementById('saveBtn').disabled = false;
+        document.getElementById('jobModal').classList.add('open');
+        setTimeout(() => document.getElementById('inputCompany').focus(), 200);
+    }
+
+    function closeModal() {
+        document.getElementById('jobModal').classList.remove('open');
+        editingId = null;
+    }
+
+    async function saveJob() {
+        const company = document.getElementById('inputCompany').value.trim();
+        const role = document.getElementById('inputRole').value.trim();
+        const skills = document.getElementById('inputSkills').value.trim();
+
+        if (!company || !role) {
+            showToast('Company and role are required', 'error');
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        try {
+            if (editingId) {
+                const res = await fetch(`/api/update-job/${editingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company, role, skills })
+                });
+                if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+                showToast('✅ Job updated successfully!', 'success');
+            } else {
+                const res = await fetch('/api/add-job', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company, role, skills })
+                });
+                if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+                showToast('✅ Job added successfully!', 'success');
+            }
+            closeModal();
+            await loadJobs();
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = editingId ? 'Update Job' : 'Save Job';
+        }
+    }
+
+    async function deleteJob(id) {
+        if (!confirm('Are you sure you want to delete this job?')) return;
+        try {
+            const res = await fetch(`/api/delete-job/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Delete failed');
+            showToast('🗑️ Job deleted', 'success');
+            await loadJobs();
+        } catch (err) {
+            showToast('Error deleting job', 'error');
+        }
+    }
+
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '❌';
+        document.getElementById('toastMsg').textContent = msg;
+        toast.className = 'toast show';
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function esc(str) {
+        return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    document.getElementById('jobModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    loadJobs();
+</script>
+</body>
+</html>

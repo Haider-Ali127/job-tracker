@@ -1,0 +1,25 @@
+{
+  "name": "ai-job-tracker-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-fileupload": "^1.5.2",
+    "mongoose": "^9.3.3",
+    "multer": "^2.1.1",
+    "pdf-parse": "^1.1.4",
+    "pdf-to-img": "^5.0.0",
+    "pdfjs-dist": "^5.6.205",
+    "pdfreader": "^3.0.8",
+    "tesseract.js": "^7.0.0"
+  }
+}
