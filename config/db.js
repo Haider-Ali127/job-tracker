@@ -2,10 +2,11 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
     try {
-        await mongoose.connect("mongodb+srv://haidet0000_db_user:Haider1526@cluster0.9ymnwwt.mongodb.net/jobtracker");
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log("MongoDB Connected");
     } catch (error) {
         console.log("DB Error:", error);
+        process.exit(1);
     }
 };
 
